@@ -99,7 +99,7 @@ namespace TwitchGameAutomate
             string token;
             Console.WriteLine("Fetching Twitch Details");
             Console.WriteLine("A page will open up requesting authorisation to your twitch account, this is so we can update your details.");
-            System.Diagnostics.Process.Start("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=9xcf5l6r7kipl9d0mkmnjltoo8y3wv9&redirect_uri=http://localhost&scope=user_read+channel_editor");
+            System.Diagnostics.Process.Start("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=9xcf5l6r7kipl9d0mkmnjltoo8y3wv9&redirect_uri=http://twitch.seanodonnell.co.uk&scope=user_read+channel_editor");
             Console.WriteLine("It will then open up a page showing your authorisation token in the URL, Please paste this in now. It looks like the following:");
             Console.WriteLine("http://localhost/#access_token=92837aansm238571haj&scope=user_read+channel_editor+channel_read");
             Console.WriteLine("We only need the value AFTER the Access_Token= Part. Do not copy the & which appears after it.");
@@ -110,7 +110,7 @@ namespace TwitchGameAutomate
             string channelname = Console.ReadLine();
             string cGame = checkGame(game);
             string cTitle = checkTitle(game);
-            if (cTitle != "")
+            if (cTitle != "unchanged")
             {
                 TwitchApi.UpdateStreamTitle(cTitle, channelname, token);
             }
@@ -160,7 +160,7 @@ namespace TwitchGameAutomate
         {
             string cGame = checkGame(game);
             string cTitle = checkTitle(game);
-            if(cTitle != "")
+            if(cTitle != "unchanged")
             {
                 TwitchApi.UpdateStreamTitle(cTitle, channelname, token);
             }
@@ -169,6 +169,7 @@ namespace TwitchGameAutomate
             refresh(sid, mid, token, channelname);
         }
 
+        // Will compare the game we have detected against the list of games in the games.txt file
         static string checkGame(string game)
         {
             // Local Variable so we don't mess with the other one.
@@ -188,23 +189,26 @@ namespace TwitchGameAutomate
             return cGame;
         }
 
+        // Will compare the game we have detected to the list of titles that should be set in the games.txt file.
         static string checkTitle(string game)
         {
-            string cGame = game;
-            string cTitle = "";
+            string cTitle;
             var path = Path.Combine(Directory.GetCurrentDirectory(), "games.txt"); // Get our path to the games list. (JSON)
+
             JObject result = JObject.Parse(File.ReadAllText(path));
+
             // If the result is in the list. Then we will return the correct title.
-            if (result["games"][cGame]["title"] != null)
+            if (result["games"][game] != null)
             {
                 Console.WriteLine("I have corrected the title to a custom one");
-                cTitle = result["games"][cGame]["title"].ToString();
+                cTitle = result["games"][game]["title"].ToString();
+                return cTitle;
             }
             else
             {
                 Console.WriteLine("Couldn't find game. We will not modify your title.");
+                return "unchanged";
             }
-            return cTitle;
         }
     }
 }
