@@ -14,7 +14,7 @@ namespace TwitchGameAutomate
         {
 
             // Usual credits+Intros
-            Console.WriteLine("Warning: This program uses the Discord API to fetch the game you are currently playing, Naming inaccuracies are Discords fault.");
+            Console.WriteLine("Warning: This program uses the Discord API to fetch the game you are currently playing, Naming inaccuracies are Discords fault. Please use the game.txt file to resolve these issues.");
             Console.WriteLine("Credits: Created by Sean @ SeanOdonnell.co.uk Feel Free to check out other projects I've created + Full Credits.");
             Console.WriteLine("Version 1.0");
             // Get details.
