@@ -1,0 +1,14 @@
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchGameAutomate.exe.config
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchGameAutomate.exe
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchGameAutomate.pdb
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\log4net.dll
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\Meebey.SmartIrc4net.dll
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\Newtonsoft.Json.dll
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\StarkSoftProxy.dll
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchLib.dll
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\log4net.xml
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\Newtonsoft.Json.xml
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchLib.xml
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.exe
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.pdb
+E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.csprojResolveAssemblyReference.cache

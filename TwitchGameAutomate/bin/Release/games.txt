@@ -1,0 +1,16 @@
+{
+	"games": {
+		"World of Warcraft": {
+			"name": "World Of Warcraft: Warlords Of Draenor",
+			"title": "Kickass Streaming Leveling",
+		},
+		"GarrysMod": {
+			"name": "Garry's Mod",
+			"title": "GMOD Fun",
+		},
+		"Overwatch": {
+			"name": "Overwatch",
+			"title": "Playing Overwatch - Leveling with Friends!",
+		},
+	}
+}
