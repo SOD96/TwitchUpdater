@@ -9,6 +9,5 @@ E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchL
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchAutomator.exe.config
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchAutomator.exe
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchAutomator.pdb
-E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.csprojResolveAssemblyReference.cache
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchAutomator.exe
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchAutomator.pdb

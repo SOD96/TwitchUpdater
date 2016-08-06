@@ -10,97 +10,49 @@ using System.Collections.Generic;
 
 namespace TwitchAutomator
 {
-    //  A simple program to automate the task of changing your game every time you stream. Must be in a discord server in order to work.
     class Program
     {
+
+        private static List<string> _games;
 
         static void Main(string[] args)
         {
             // Usual credits+Intros
-            Console.WriteLine("Warning: This program uses the Discord API to fetch the game you are currently playing, Naming inaccuracies are Discords fault. Please use the game.txt file to resolve these issues.");
+            Console.WriteLine("We rely on a list of games to detect your game. Any issues please contact me.");
             Console.WriteLine("Credits: Created by Sean @ SeanOdonnell.co.uk Feel Free to check out other projects I've created + Full Credits.");
-            Console.WriteLine("Version 1.0");
+            Console.WriteLine("Version 2.0 Now with less discord!");
             // Get details.
-            detailsInput();
+            getGame();
+            
         }
-
-        static void detailsInput()
+        static void getGame()
         {
-            // Variables
-            if(string.IsNullOrEmpty(Properties.Settings.Default.serverid) || string.IsNullOrEmpty(Properties.Settings.Default.discordtag))
-            {
-                Console.WriteLine("Please enter your Discord ServerID (Server Settings > Widget > Enable Widget > Server ID)");
-                Properties.Settings.Default.serverid = Console.ReadLine();
-                Console.WriteLine("Please enter your Discord Tag. (Example#2571) ");
-                Properties.Settings.Default.discordtag = Console.ReadLine();
-                Properties.Settings.Default.Save();
-                if (string.IsNullOrWhiteSpace(Properties.Settings.Default.serverid) || string.IsNullOrWhiteSpace(Properties.Settings.Default.discordtag))
-                {
-                    Console.WriteLine("You did not enter any values, please try again");
-                    detailsInput();
-                }
-            }
-            Console.WriteLine("Scanning for Games Every 5 Seconds");
-            System.Threading.Thread.Sleep(5000);
-
-            getGame(Properties.Settings.Default.serverid, Properties.Settings.Default.discordtag);
-
-
-        }
-        // Will query Discord to detect the game that someone is playing.
-        static void getGame(string sid,string mid)
-        {
-            //Variables
-            string game;
-            string discordtag;
-            //Console.WriteLine("The following details I have are: Your server ID is: " + sid + "Your memberID is " + mid); - No longer required tbh
-            System.Net.WebClient wc = new System.Net.WebClient();
-
+            _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
             try
             {
-                var json = wc.DownloadString("https://discordapp.com/api/servers/" + sid + "/widget.json");
-
-                JObject result = JObject.Parse(json);
-                //result["members"][mid]
-                foreach(var m in result["members"])
+                foreach (Process p in System.Diagnostics.Process.GetProcesses()) // For each process we have running
                 {
-                    discordtag = m["username"] + "#" + m["discriminator"];
-                    if(discordtag == mid)
+                    if (p.MainWindowTitle != null) // Exclude ones with no main window (Likely system processes)
                     {
-                        if(m["game"] != null)
+                        if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
                         {
-                            if (m["game"]["name"] != null)
-                            {
-                                game = m["game"]["name"].ToString();
-                                Console.WriteLine("I have detected: " + game);
-                                updateTwitch(game, sid, mid); //Send the user to the twitch update.
-                            }
-                            else
-                            {
-                                Console.WriteLine("I cannot detect any games currently being played. Please try again.");
-                                Console.WriteLine("Press Enter to Continue...");
-                                Console.ReadLine();
-                                detailsInput();
+                            updateTwitch(p.MainWindowTitle);
 
-                            }
                         }
-                        else
-                        {
-                            Console.WriteLine("Cannot Detect Any Games");
-                            detailsInput();
-                        }
-
-
                     }
                 }
+
             }
-            catch (WebException e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e + "We errored out trying to connect, this is either due to an incorrect server or widgets being disabled or something else.");
-                detailsInput();
+
             }
+
+            Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
+            System.Threading.Thread.Sleep(5000);
         }
-        static void updateTwitch(string game, string sid, string mid)
+
+        static void updateTwitch(string game)
         {
             string token;
             Console.WriteLine("Fetching Twitch Details");
@@ -126,10 +78,10 @@ namespace TwitchAutomator
             TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
 
             Console.WriteLine("I have updated the game to " + cGame);
-            refresh(sid,mid,token, Properties.Settings.Default.twitchname);
+            refresh(game, token, Properties.Settings.Default.twitchname);
 
         }
-        static void refresh(string sid,string mid,string token, string channelname)
+        static void refresh(string game,string token, string channelname)
         {
             if(Properties.Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
             {
@@ -142,38 +94,10 @@ namespace TwitchAutomator
             Console.WriteLine("We will refresh every " + Properties.Settings.Default.refreshtime / 60000 + " Minutes" );
 
             System.Threading.Thread.Sleep(Properties.Settings.Default.refreshtime);
-            refreshGame(sid, mid, token, channelname);
+            getGame();
 
         }
 
-        static void refreshGame(string sid, string mid, string token, string channelname)
-        {
-            //Variables
-            string game;
-            string discordtag;
-            System.Net.WebClient wc = new System.Net.WebClient();
-            // https://discordapp.com/api/servers/210487055686434816/widget.json
-            try
-            {
-                var json = wc.DownloadString("https://discordapp.com/api/servers/" + sid + "/widget.json");
-                JObject result = JObject.Parse(json);
-                //result["members"][mid]
-                foreach (var m in result["members"])
-                {
-                    discordtag = m["username"] + "#" + m["discriminator"];
-                    if (discordtag == mid)
-                    {
-                        game = m["game"]["name"].ToString();
-                        Console.WriteLine("I have detected: " + game);
-                        refreshTwitch(game, sid, mid,token, channelname); //Send the user to the twitch update.
-                    }
-                }
-            }
-            catch
-            {
-
-            }
-        }
         static void refreshTwitch(string game, string sid, string mid, string token, string channelname)
         {
             string cGame = checkGame(game);
@@ -184,7 +108,6 @@ namespace TwitchAutomator
             }
             TwitchApi.UpdateStreamGame(cGame, channelname, token);
             Console.WriteLine("I have updated the game to " + cGame);
-            refresh(sid, mid, token, channelname);
         }
 
         // Will compare the game we have detected against the list of games in the games.txt file
@@ -202,7 +125,7 @@ namespace TwitchAutomator
             }
             else
             {
-                Console.WriteLine("Couldn't find game. Resorting to default Discord Title");
+                Console.WriteLine("Couldn't find game. Restoring to Default Title");
             }
             return cGame;
         }
@@ -228,23 +151,6 @@ namespace TwitchAutomator
                 return "unchanged";
             }
         }
-
-        static string getGame()
-        {
-            string stuff = "null";
-            var processes = Process.GetProcesses();
-            List<string> gameList = new List<string>();
-            foreach (var process in processes)
-            {
-                gameList.Add(process.ProcessName.ToLower());
-            }
-            foreach(var game in gameList)
-            {
-
-            }
-            return stuff;
-        }
-
 
     }
 }
