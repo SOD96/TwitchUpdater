@@ -131,8 +131,17 @@ namespace TwitchAutomator
         }
         static void refresh(string sid,string mid,string token, string channelname)
         {
-            Console.WriteLine("Refresh in 5 minutes");
-            System.Threading.Thread.Sleep(300000);
+            if(Properties.Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
+            {
+                Console.WriteLine("How often do you want us to refresh? (Time in minutes)");
+                int minutes = Convert.ToInt32(Console.ReadLine());
+                int milliseconds = minutes * 60000;
+                Properties.Settings.Default.refreshtime = milliseconds;
+                Properties.Settings.Default.Save();
+            }
+            Console.WriteLine("We will refresh every " + Properties.Settings.Default.refreshtime / 60000 + " Minutes" );
+
+            System.Threading.Thread.Sleep(Properties.Settings.Default.refreshtime);
             refreshGame(sid, mid, token, channelname);
 
         }

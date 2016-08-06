@@ -58,5 +58,17 @@ namespace TwitchAutomator.Properties {
                 this["twitchname"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int refreshtime {
+            get {
+                return ((int)(this["refreshtime"]));
+            }
+            set {
+                this["refreshtime"] = value;
+            }
+        }
     }
 }
