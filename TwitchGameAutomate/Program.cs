@@ -50,6 +50,7 @@ namespace TwitchAutomator
 
             Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
             System.Threading.Thread.Sleep(5000);
+            getGame();
         }
 
         static void updateTwitch(string game)
