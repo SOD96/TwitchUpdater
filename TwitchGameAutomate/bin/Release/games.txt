@@ -10,7 +10,7 @@
 		},
 		"Overwatch": {
 			"name": "Overwatch",
-			"title": "Playing Overwatch - Leveling with Friends!",
+			"title": "Going Up them Ranks! 59 Highest!",
 		},
 	}
 }

@@ -2,9 +2,6 @@
 using Newtonsoft.Json.Linq;
 using TwitchLib;
 using System.IO;
-using System.Net;
-using System.Text;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
 
