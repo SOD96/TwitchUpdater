@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
 
-namespace TwitchGameAutomate
+namespace TwitchAutomator
 {
     //  A simple program to automate the task of changing your game every time you stream. Must be in a discord server in order to work.
     class Program
@@ -16,8 +16,6 @@ namespace TwitchGameAutomate
 
         static void Main(string[] args)
         {
-            getGame();
-
             // Usual credits+Intros
             Console.WriteLine("Warning: This program uses the Discord API to fetch the game you are currently playing, Naming inaccuracies are Discords fault. Please use the game.txt file to resolve these issues.");
             Console.WriteLine("Credits: Created by Sean @ SeanOdonnell.co.uk Feel Free to check out other projects I've created + Full Credits.");

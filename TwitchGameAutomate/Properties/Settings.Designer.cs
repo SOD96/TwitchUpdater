@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TwitchGameAutomate.Properties {
+namespace TwitchAutomator.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
