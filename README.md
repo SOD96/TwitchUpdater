@@ -16,9 +16,9 @@ At the moment it only works for twitch but I have the intention to role this out
 
 #Credits
 
-Sean - http://seanodonnell.co.uk / @TGN_Sean (Creator of app)
-TwitchLib - https://github.com/swiftyspiffy/TwitchLib
-NewtonsoftJSon - http://www.newtonsoft.com/json
+Sean - http://seanodonnell.co.uk / @TGN_Sean (Creator of app)  
+TwitchLib - https://github.com/swiftyspiffy/TwitchLib  
+NewtonsoftJSon - http://www.newtonsoft.com/json  
 
 #Licence
 
