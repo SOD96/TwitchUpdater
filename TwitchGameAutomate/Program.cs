@@ -3,6 +3,10 @@ using Newtonsoft.Json.Linq;
 using TwitchLib;
 using System.IO;
 using System.Net;
+using System.Text;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace TwitchGameAutomate
 {
@@ -12,6 +16,7 @@ namespace TwitchGameAutomate
 
         static void Main(string[] args)
         {
+            getGame();
 
             // Usual credits+Intros
             Console.WriteLine("Warning: This program uses the Discord API to fetch the game you are currently playing, Naming inaccuracies are Discords fault. Please use the game.txt file to resolve these issues.");
@@ -24,20 +29,23 @@ namespace TwitchGameAutomate
         static void detailsInput()
         {
             // Variables
-            string serverid; // The unique serverID for discord
-            string memberid; // The unique member ID for users within the server   
-            Console.WriteLine("Please enter your Discord ServerID (Server Settings > Widget > Enable Widget > Server ID)");
-            serverid = Console.ReadLine();
-            Console.WriteLine("Please enter your Discord Tag. (Example#2571) ");
-            memberid = Console.ReadLine();
-
-            if(string.IsNullOrWhiteSpace(serverid) || string.IsNullOrWhiteSpace(memberid))
+            if(string.IsNullOrEmpty(Properties.Settings.Default.serverid) || string.IsNullOrEmpty(Properties.Settings.Default.discordtag))
             {
-                Console.WriteLine("You did not enter any values, please try again");
-                detailsInput();
+                Console.WriteLine("Please enter your Discord ServerID (Server Settings > Widget > Enable Widget > Server ID)");
+                Properties.Settings.Default.serverid = Console.ReadLine();
+                Console.WriteLine("Please enter your Discord Tag. (Example#2571) ");
+                Properties.Settings.Default.discordtag = Console.ReadLine();
+                Properties.Settings.Default.Save();
+                if (string.IsNullOrWhiteSpace(Properties.Settings.Default.serverid) || string.IsNullOrWhiteSpace(Properties.Settings.Default.discordtag))
+                {
+                    Console.WriteLine("You did not enter any values, please try again");
+                    detailsInput();
+                }
             }
+            Console.WriteLine("Scanning for Games Every 5 Seconds");
+            System.Threading.Thread.Sleep(5000);
 
-            getGame(serverid, memberid);
+            getGame(Properties.Settings.Default.serverid, Properties.Settings.Default.discordtag);
 
 
         }
@@ -47,7 +55,7 @@ namespace TwitchGameAutomate
             //Variables
             string game;
             string discordtag;
-            Console.WriteLine("The following details I have are: Your server ID is: " + sid + "Your memberID is " + mid);
+            //Console.WriteLine("The following details I have are: Your server ID is: " + sid + "Your memberID is " + mid); - No longer required tbh
             System.Net.WebClient wc = new System.Net.WebClient();
 
             try
@@ -99,25 +107,28 @@ namespace TwitchGameAutomate
             string token;
             Console.WriteLine("Fetching Twitch Details");
             Console.WriteLine("A page will open up requesting authorisation to your twitch account, this is so we can update your details.");
-            System.Diagnostics.Process.Start("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=9xcf5l6r7kipl9d0mkmnjltoo8y3wv9&redirect_uri=http://twitch.seanodonnell.co.uk&scope=channel_editor");
-            Console.WriteLine("It will then open up a page showing your authorisation token in the URL, Please paste this in now. It looks like the following:");
-            Console.WriteLine("http://localhost/#access_token=92837aansm238571haj&scope=user_read+channel_editor+channel_read");
-            Console.WriteLine("We only need the value AFTER the Access_Token= Part. Do not copy the & which appears after it.");
+            System.Diagnostics.Process.Start("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=9xcf5l6r7kipl9d0mkmnjltoo8y3wv9&scope=channel_editor&redirect_uri=http://twitch.seanodonnell.co.uk");
+            Console.WriteLine("Please copy and paste in the token you got from the website you just visited, this is your OAuth key and must not be shared with anyone.");
             token = Console.ReadLine();
             Console.Clear();
             Console.WriteLine("Console Cleared to avoid Token Leaks");
             Console.WriteLine("Please input your Twitch Channel Name");
-            string channelname = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(Properties.Settings.Default.twitchname))
+            {
+                Properties.Settings.Default.twitchname = Console.ReadLine();
+                Properties.Settings.Default.Save();
+            }
             string cGame = checkGame(game);
             string cTitle = checkTitle(game);
             if (cTitle != "unchanged")
             {
-                TwitchApi.UpdateStreamTitle(cTitle, channelname, token);
+                TwitchApi.UpdateStreamTitle(cTitle, Properties.Settings.Default.twitchname, token);
             }
-            TwitchApi.UpdateStreamGame(cGame, channelname, token);
+            TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
 
             Console.WriteLine("I have updated the game to " + cGame);
-            refresh(sid,mid,token,channelname);
+            refresh(sid,mid,token, Properties.Settings.Default.twitchname);
 
         }
         static void refresh(string sid,string mid,string token, string channelname)
@@ -210,5 +221,23 @@ namespace TwitchGameAutomate
                 return "unchanged";
             }
         }
+
+        static string getGame()
+        {
+            string stuff = "null";
+            var processes = Process.GetProcesses();
+            List<string> gameList = new List<string>();
+            foreach (var process in processes)
+            {
+                gameList.Add(process.ProcessName.ToLower());
+            }
+            foreach(var game in gameList)
+            {
+
+            }
+            return stuff;
+        }
+
+
     }
 }

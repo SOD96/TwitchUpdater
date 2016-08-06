@@ -11,4 +11,3 @@ E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\Newtons
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\bin\Release\TwitchLib.xml
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.exe
 E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.pdb
-E:\Developmental Stuff\TwitchGameAutomate\TwitchGameAutomate\obj\Release\TwitchGameAutomate.csprojResolveAssemblyReference.cache
