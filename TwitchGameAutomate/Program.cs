@@ -4,6 +4,7 @@ using TwitchLib;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace TwitchAutomator
 {
@@ -14,14 +15,13 @@ namespace TwitchAutomator
 
         static void Main(string[] args)
         {
-            // Usual credits+Intros
-            Console.WriteLine("We rely on a list of games to detect your game. Any issues please contact me.");
-            Console.WriteLine("Credits: Created by Sean @ SeanOdonnell.co.uk Feel Free to check out other projects I've created + Full Credits.");
-            Console.WriteLine("Version 2.0 Now with less discord!");
+
+            versionChecks();           
             // Get details.
             getGame();
             
         }
+        
         static void getGame()
         {
             _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
@@ -191,6 +191,23 @@ namespace TwitchAutomator
             {
                 Console.WriteLine("Couldn't find game. We will not modify your title.");
                 return "unchanged";
+            }
+        }
+
+        static void versionChecks()
+        {
+            // Version Checks
+            var path = Directory.GetCurrentDirectory() + "/TwitchAutomator.exe"; // Path to the EXE
+            var file = File.OpenRead(path); // Opens file
+            var appmd5 = MD5.Create().ComputeHash(file); // Creates the MD5 Of the file
+            var cMD5 = BitConverter.ToString(appmd5).Replace("-", "").ToLower(); // Converts our computed hash to a string and replaces the - with nothing and puts it lowercase for easier comparing.
+            // Call my website to see if the version is the same... 
+            System.Net.WebClient wc = new System.Net.WebClient();
+            byte[] sMD5 = wc.DownloadData("http://seanodonnell.co.uk/twitch/versioncheck.txt"); // Download the md5 from the site.
+            string uMD5 = System.Text.Encoding.UTF8.GetString(sMD5); // Convert it to a string.
+            if (uMD5 != cMD5)
+            {
+                Console.WriteLine("This is an out of date version, please redownload the bot!"); // Tell user to redownload
             }
         }
 
