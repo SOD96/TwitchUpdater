@@ -34,13 +34,12 @@ namespace TwitchAutomator
                         if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
                         {
                             updateTwitch(p.MainWindowTitle);
-
                         }
                     }
                 }
 
             }
-            catch (Exception ex)
+                catch (Exception ex)
             {
 
             }
@@ -49,7 +48,6 @@ namespace TwitchAutomator
             System.Threading.Thread.Sleep(5000);
             getGame();
         }
-
         static void updateTwitch(string game)
         {
             string token;
@@ -79,6 +77,7 @@ namespace TwitchAutomator
             refresh(game, token, Properties.Settings.Default.twitchname);
 
         }
+
         static void refresh(string game,string token, string channelname)
         {
             if(Properties.Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
@@ -92,7 +91,7 @@ namespace TwitchAutomator
             Console.WriteLine("We will refresh every " + Properties.Settings.Default.refreshtime / 60000 + " Minutes" );
 
             System.Threading.Thread.Sleep(Properties.Settings.Default.refreshtime);
-            getGame();
+            refreshGetGame(token);
 
         }
 
@@ -108,6 +107,51 @@ namespace TwitchAutomator
             Console.WriteLine("I have updated the game to " + cGame);
         }
 
+        static void refreshUpdateTwitch(string game, string token)
+        {
+
+            string cGame = checkGame(game);
+            string cTitle = checkTitle(game);
+            if (cTitle != "unchanged")
+            {
+                TwitchApi.UpdateStreamTitle(cTitle, Properties.Settings.Default.twitchname, token);
+            }
+            TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
+
+            Console.WriteLine("I have updated the game to " + cGame);
+            refresh(game, token, Properties.Settings.Default.twitchname);
+
+        }
+
+        static void refreshGetGame(string token)
+        {
+            _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
+            try
+            {
+                foreach (Process p in System.Diagnostics.Process.GetProcesses()) // For each process we have running
+                {
+                    if (p.MainWindowTitle != null) // Exclude ones with no main window (Likely system processes)
+                    {
+                        if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
+                        {
+
+                            refreshUpdateTwitch(p.MainWindowTitle, token);
+
+
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
+            System.Threading.Thread.Sleep(5000);
+            getGame();
+        }
         // Will compare the game we have detected against the list of games in the games.txt file
         static string checkGame(string game)
         {
