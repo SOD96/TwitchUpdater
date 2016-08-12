@@ -4,7 +4,10 @@ using TwitchLib;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Net;
 using System.Security.Cryptography;
+using System.Threading;
+using TwitchAutomator.Properties;
 
 namespace TwitchAutomator
 {
@@ -12,155 +15,102 @@ namespace TwitchAutomator
     {
 
         private static List<string> _games;
+        private static string _token;
 
         static void Main(string[] args)
         {
+            VersionChecks();
+            GetOauthToken();
 
-            versionChecks();           
-            // Get details.
-            getGame();
-            
-        }
-        
-        static void getGame()
-        {
-            _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
-            try
+            // Our games list 
+            _games = new List<string>(File.ReadAllLines(@"./gameslist.dat"));          
+
+            while (true)
             {
-                foreach (Process p in System.Diagnostics.Process.GetProcesses()) // For each process we have running
-                {
-                    if (p.MainWindowTitle != null) // Exclude ones with no main window (Likely system processes)
-                    {
-                        if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
-                        {
-                            updateTwitch(p.MainWindowTitle);
-                        }
-                    }
-                }
-
+                FindGameWindow();
             }
-                catch (Exception ex)
-            {
-
-            }
-
-            Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
-            System.Threading.Thread.Sleep(5000);
-            getGame();
         }
-        static void updateTwitch(string game)
+
+        static void GetOauthToken()
         {
-            string token;
             Console.WriteLine("Fetching Twitch Details");
             Console.WriteLine("A page will open up requesting authorisation to your twitch account, this is so we can update your details.");
-            System.Diagnostics.Process.Start("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=9xcf5l6r7kipl9d0mkmnjltoo8y3wv9&scope=channel_editor&redirect_uri=http://twitch.seanodonnell.co.uk");
+            Process.Start("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=9xcf5l6r7kipl9d0mkmnjltoo8y3wv9&scope=channel_editor&redirect_uri=http://twitch.seanodonnell.co.uk");
             Console.WriteLine("Please copy and paste in the token you got from the website you just visited, this is your OAuth key and must not be shared with anyone.");
-            token = Console.ReadLine();
+            _token = Console.ReadLine();
             Console.Clear();
             Console.WriteLine("Console Cleared to avoid Token Leaks");
-            Console.WriteLine("Please input your Twitch Channel Name");
+        }
 
-            if (string.IsNullOrEmpty(Properties.Settings.Default.twitchname))
-            {
-                Properties.Settings.Default.twitchname = Console.ReadLine();
-                Properties.Settings.Default.Save();
-            }
-            string cGame = checkGame(game);
-            string cTitle = checkTitle(game);
-            if (cTitle != "unchanged")
-            {
-                TwitchApi.UpdateStreamTitle(cTitle, Properties.Settings.Default.twitchname, token);
-            }
-            TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
+        static void FindGameWindow()
+        {
+            bool gameFound = false;
 
-            Console.WriteLine("I have updated the game to " + cGame);
-            refresh(game, token, Properties.Settings.Default.twitchname);
+            foreach (Process p in Process.GetProcesses()) // For each process we have running
+            {
+                if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
+                {
+                    gameFound = true;                  
+                    SetGame(p.MainWindowTitle);
+                    Thread.Sleep(Settings.Default.refreshtime);
+                    break;
+                }
+            }
+
+            if (!gameFound)
+            {
+                Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
+                Thread.Sleep(5000);
+            }
 
         }
 
-        static void refresh(string game,string token, string channelname)
+        static void SetGame(string game)
         {
-            if(Properties.Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
+            if (string.IsNullOrEmpty(Settings.Default.twitchname))
+            {
+                Console.WriteLine("Please input your Twitch Channel Name");
+                Settings.Default.twitchname = Console.ReadLine();
+                Settings.Default.Save();
+            }
+
+            UpdateTwitch(game);
+
+            if (Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
             {
                 Console.WriteLine("How often do you want us to refresh? (Time in minutes)");
                 int minutes = Convert.ToInt32(Console.ReadLine());
                 int milliseconds = minutes * 60000;
-                Properties.Settings.Default.refreshtime = milliseconds;
-                Properties.Settings.Default.Save();
+                Settings.Default.refreshtime = milliseconds;
+                Settings.Default.Save();
             }
-            Console.WriteLine("We will refresh every " + Properties.Settings.Default.refreshtime / 60000 + " Minutes" );
-
-            System.Threading.Thread.Sleep(Properties.Settings.Default.refreshtime);
-            refreshGetGame(token);
+            Console.WriteLine("We will refresh every " + Settings.Default.refreshtime / 60000 + " Minutes");
 
         }
 
-        static void refreshTwitch(string game, string sid, string mid, string token, string channelname)
+        static void UpdateTwitch(string game)
         {
-            string cGame = checkGame(game);
-            string cTitle = checkTitle(game);
-            if(cTitle != "unchanged")
-            {
-                TwitchApi.UpdateStreamTitle(cTitle, channelname, token);
-            }
-            TwitchApi.UpdateStreamGame(cGame, channelname, token);
-            Console.WriteLine("I have updated the game to " + cGame);
-        }
-
-        static void refreshUpdateTwitch(string game, string token)
-        {
-
-            string cGame = checkGame(game);
-            string cTitle = checkTitle(game);
+            string cGame = CheckGame(game);
+            string cTitle = CheckTitle(game);
             if (cTitle != "unchanged")
             {
-                TwitchApi.UpdateStreamTitle(cTitle, Properties.Settings.Default.twitchname, token);
+                TwitchApi.UpdateStreamTitle(cTitle, Settings.Default.twitchname, _token);
             }
-            TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
+            TwitchApi.UpdateStreamGame(cGame, Settings.Default.twitchname, _token);
 
             Console.WriteLine("I have updated the game to " + cGame);
-            refresh(game, token, Properties.Settings.Default.twitchname);
-
         }
 
-        static void refreshGetGame(string token)
-        {
-            _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
-            try
-            {
-                foreach (Process p in System.Diagnostics.Process.GetProcesses()) // For each process we have running
-                {
-                    if (p.MainWindowTitle != null) // Exclude ones with no main window (Likely system processes)
-                    {
-                        if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
-                        {
 
-                            refreshUpdateTwitch(p.MainWindowTitle, token);
-
-
-                        }
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-
-            }
-
-            Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
-            System.Threading.Thread.Sleep(5000);
-            getGame();
-        }
         // Will compare the game we have detected against the list of games in the games.txt file
-        static string checkGame(string game)
+        static string CheckGame(string game)
         {
             // Local Variable so we don't mess with the other one.
             string cGame = game;
             var path = Path.Combine(Directory.GetCurrentDirectory(), "games.txt"); // Get our path to the games list. (JSON)
             JObject result = JObject.Parse(File.ReadAllText(path));
             // If the result is in the list. Then we will return the correct title.
-            if(result["games"][game] != null)
+            if (result["games"][game] != null)
             {
                 Console.WriteLine("I have corrected the game to a custom one");
                 cGame = result["games"][game]["name"].ToString();
@@ -173,7 +123,7 @@ namespace TwitchAutomator
         }
 
         // Will compare the game we have detected to the list of titles that should be set in the games.txt file.
-        static string checkTitle(string game)
+        static string CheckTitle(string game)
         {
             string cTitle;
             var path = Path.Combine(Directory.GetCurrentDirectory(), "games.txt"); // Get our path to the games list. (JSON)
@@ -187,24 +137,22 @@ namespace TwitchAutomator
                 cTitle = result["games"][game]["title"].ToString();
                 return cTitle;
             }
-            else
-            {
-                Console.WriteLine("Couldn't find game. We will not modify your title.");
-                return "unchanged";
-            }
+
+            Console.WriteLine("Couldn't find game. We will not modify your title.");
+            return "unchanged";
         }
 
-        static void versionChecks()
+        static void VersionChecks()
         {
             // Version Checks
             var path = Directory.GetCurrentDirectory() + "/TwitchAutomator.exe"; // Path to the EXE
             var file = File.OpenRead(path); // Opens file
             var appmd5 = MD5.Create().ComputeHash(file); // Creates the MD5 Of the file
             var cMD5 = BitConverter.ToString(appmd5).Replace("-", "").ToLower(); // Converts our computed hash to a string and replaces the - with nothing and puts it lowercase for easier comparing.
+
             // Call my website to see if the version is the same... 
-            System.Net.WebClient wc = new System.Net.WebClient();
-            byte[] sMD5 = wc.DownloadData("http://seanodonnell.co.uk/twitch/versioncheck.txt"); // Download the md5 from the site.
-            string uMD5 = System.Text.Encoding.UTF8.GetString(sMD5); // Convert it to a string.
+            var wc = new WebClient();
+            string uMD5 = wc.DownloadString("http://seanodonnell.co.uk/twitch/versioncheck.txt"); // Download the md5 from the site.
             if (uMD5 != cMD5)
             {
                 Console.WriteLine("This is an out of date version, please redownload the bot!"); // Tell user to redownload
