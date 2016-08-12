@@ -87,11 +87,15 @@ namespace TwitchAutomator
 
         static void SetGame(string game)
         {
+            if(string.IsNullOrEmpty(Settings.Default.twitchname))
+            {
+                Console.WriteLine("Please input your Twitch Channel Name"); // This is being changed to a constant ask due to people changing twitch channels. Temp fix until the UI is done.
+                Settings.Default.twitchname = Console.ReadLine();
+                Settings.Default.Save();
+            }
 
-            Console.WriteLine("Please input your Twitch Channel Name"); // This is being changed to a constant ask due to people changing twitch channels. Temp fix until the UI is done.
-            string twitchname = Console.ReadLine();
 
-            UpdateTwitch(game,twitchname);
+            UpdateTwitch(game);
 
             if (Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
             {
@@ -106,15 +110,15 @@ namespace TwitchAutomator
         }
 
 
-        static void UpdateTwitch(string game, string twitchname)
+        static void UpdateTwitch(string game)
         {
             string cGame = CheckGame(game);
             string cTitle = CheckTitle(game);
             if (cTitle != "unchanged")
             {
-                TwitchApi.UpdateStreamTitle(cTitle, twitchname, _token);
+                TwitchApi.UpdateStreamTitle(cTitle, Settings.Default.twitchname, _token);
             }
-            TwitchApi.UpdateStreamGame(cGame, twitchname, _token);
+            TwitchApi.UpdateStreamGame(cGame, Settings.Default.twitchname, _token);
 
             Console.WriteLine("I have updated the game to " + cGame);
 
