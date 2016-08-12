@@ -12,5 +12,9 @@
 			"name": "Overwatch",
 			"title": "Going Up them Ranks! 59 Highest!",
 		},
+		"Diablo III": {
+			"name": "Diablo III: Reaper of Souls",
+			"title": "Season 7 - Monk | Grinding Everything!",
+		},
 	}
 }

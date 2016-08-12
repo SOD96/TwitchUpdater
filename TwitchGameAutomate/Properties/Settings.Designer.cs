@@ -70,5 +70,29 @@ namespace TwitchAutomator.Properties {
                 this["refreshtime"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string googleaccess {
+            get {
+                return ((string)(this["googleaccess"]));
+            }
+            set {
+                this["googleaccess"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string googlerefresh {
+            get {
+                return ((string)(this["googlerefresh"]));
+            }
+            set {
+                this["googlerefresh"] = value;
+            }
+        }
     }
 }

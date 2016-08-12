@@ -5,35 +5,39 @@ using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Net;
+using System.Text;
+using System.Collections.Specialized;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace TwitchAutomator
 {
+
     class Program
     {
-
         private static List<string> _games;
 
-        static void Main(string[] args)
+        static void Main()
         {
-
-            versionChecks();           
-            // Get details.
-            getGame();
-            
+                versionChecks(); // Checks our program MD5 to see if it matches with the current server version.
+                getGame(); // Get the service that is being streamed too.
         }
         
+
         static void getGame()
         {
             _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
             try
             {
-                foreach (Process p in System.Diagnostics.Process.GetProcesses()) // For each process we have running
+                foreach (Process p in Process.GetProcesses()) // For each process we have running
                 {
                     if (p.MainWindowTitle != null) // Exclude ones with no main window (Likely system processes)
                     {
                         if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
                         {
-                            updateTwitch(p.MainWindowTitle);
+                                // Go to auth with twitch
+                                twitchAuth(p.MainWindowTitle);
                         }
                     }
                 }
@@ -48,7 +52,7 @@ namespace TwitchAutomator
             System.Threading.Thread.Sleep(5000);
             getGame();
         }
-        static void updateTwitch(string game)
+        static void twitchAuth(string game)
         {
             string token;
             Console.WriteLine("Fetching Twitch Details");
@@ -59,26 +63,27 @@ namespace TwitchAutomator
             Console.Clear();
             Console.WriteLine("Console Cleared to avoid Token Leaks");
             Console.WriteLine("Please input your Twitch Channel Name");
+            string twitchname = Console.ReadLine();
 
-            if (string.IsNullOrEmpty(Properties.Settings.Default.twitchname))
-            {
-                Properties.Settings.Default.twitchname = Console.ReadLine();
-                Properties.Settings.Default.Save();
-            }
+            twitchGameUpdate(game, token, twitchname);
+
+        }
+
+        static void twitchGameUpdate(string game, string token, string twitchname)
+        {
             string cGame = checkGame(game);
             string cTitle = checkTitle(game);
             if (cTitle != "unchanged")
             {
-                TwitchApi.UpdateStreamTitle(cTitle, Properties.Settings.Default.twitchname, token);
+                TwitchApi.UpdateStreamTitle(cTitle, twitchname, token);
             }
-            TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
+            TwitchApi.UpdateStreamGame(cGame, twitchname, token);
 
             Console.WriteLine("I have updated the game to " + cGame);
-            refresh(game, token, Properties.Settings.Default.twitchname);
-
+            refresh(token,twitchname);
         }
 
-        static void refresh(string game,string token, string channelname)
+        static void refresh(string token, string twitchname)
         {
             if(Properties.Settings.Default.refreshtime == 0) //If it's not been set then then.... we can try set it.
             {
@@ -91,7 +96,7 @@ namespace TwitchAutomator
             Console.WriteLine("We will refresh every " + Properties.Settings.Default.refreshtime / 60000 + " Minutes" );
 
             System.Threading.Thread.Sleep(Properties.Settings.Default.refreshtime);
-            refreshGetGame(token);
+            refreshGetGame(token,twitchname);
 
         }
 
@@ -107,7 +112,7 @@ namespace TwitchAutomator
             Console.WriteLine("I have updated the game to " + cGame);
         }
 
-        static void refreshUpdateTwitch(string game, string token)
+        static void refreshUpdateTwitch(string game, string token, string twitchname)
         {
 
             string cGame = checkGame(game);
@@ -119,11 +124,11 @@ namespace TwitchAutomator
             TwitchApi.UpdateStreamGame(cGame, Properties.Settings.Default.twitchname, token);
 
             Console.WriteLine("I have updated the game to " + cGame);
-            refresh(game, token, Properties.Settings.Default.twitchname);
+            refresh(token, twitchname);
 
         }
 
-        static void refreshGetGame(string token)
+        static void refreshGetGame(string token, string twitchname)
         {
             _games = new List<string>(File.ReadAllLines(@"./gameslist.dat")); // Our games list
             try
@@ -134,10 +139,7 @@ namespace TwitchAutomator
                     {
                         if (_games.Contains(p.MainWindowTitle)) // If the title is within our games list, that user is likely playing that game.
                         {
-
-                            refreshUpdateTwitch(p.MainWindowTitle, token);
-
-
+                            refreshUpdateTwitch(p.MainWindowTitle, token, twitchname);
                         }
                     }
                 }
@@ -150,7 +152,7 @@ namespace TwitchAutomator
 
             Console.WriteLine("We couldn't find any games. Retrying in 5 seconds.");
             System.Threading.Thread.Sleep(5000);
-            getGame();
+            refreshGetGame(token,twitchname);
         }
         // Will compare the game we have detected against the list of games in the games.txt file
         static string checkGame(string game)
@@ -210,6 +212,7 @@ namespace TwitchAutomator
                 Console.WriteLine("This is an out of date version, please redownload the bot!"); // Tell user to redownload
             }
         }
+
 
     }
 }
